@@ -4,6 +4,10 @@
 '''
 
 def poly_derivative(poly):
+    '''
+        a function def poly_derivative(poly):
+    that calculates the derivative of a polynomial
+    '''
     # Check if poly is a valid list of integers or floats
     if not isinstance(poly, list) or len(poly) == 0:
         return None
