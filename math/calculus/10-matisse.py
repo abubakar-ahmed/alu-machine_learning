@@ -3,6 +3,7 @@
         Calculate the derivative of a polynomial.
 '''
 
+
 def poly_derivative(poly):
     '''
         a function def poly_derivative(poly):
