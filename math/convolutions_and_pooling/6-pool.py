@@ -1,4 +1,6 @@
- function def
+#!/usr/bin/env python3
+'''
+    a function def
     pool(images, kernel_shape, pool_shape, mode='max'):
     that performs a pooling on images:
     mode: max or avg
@@ -42,5 +44,3 @@ def pool(images, kernel_shape, stride, mode='max'):
             else:
                 pass
             pooled[:, i, j, :] = output
-
-    return pooled
