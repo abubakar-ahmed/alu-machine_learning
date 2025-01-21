@@ -1,4 +1,4 @@
-i#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
     A class DeepNeuralNetwork that defines a deep neural
     network performing binary classification
