@@ -27,4 +27,3 @@ def l2_reg_cost(cost, lambtha, weights, L, m):
     l2_cost = cost + l2_term
 
     return l2_cost
-    
