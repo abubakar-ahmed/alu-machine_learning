@@ -21,4 +21,3 @@ def l2_reg_cost(cost):
             - tensor containing the cost of the network
     '''
     return cost + tf.losses.get_regularization_losses()
-    
