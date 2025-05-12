@@ -226,30 +226,31 @@ class NST:
         diff = tf.reduce_mean(tf.square(gram_style - gram_target))
         return diff
 
-def style_cost(self, style_outputs):
-    '''
-        Calculates the style cost for generated image
+    def style_cost(self, style_outputs):
+        '''
+            Calculates the style cost for generated image
 
-        Parameters:
-            style_outputs: a list containing the outputs of
-            the style layers
+            parameters:
+                style_outputs: a list containing the outputs of
+                the style layers
 
-        Returns:
-            the style cost
-    '''
-    length = len(self.style_layers)
-    if not isinstance(style_outputs, list) or len(style_outputs) != length:
-        raise TypeError(
-            "style_outputs must be a list with a length of {}".format(length)
-        )
+            returns:
+                the style cost
+        '''
+        length = len(self.style_layers)
+        if not isinstance(style_outputs, list) or len(style_outputs) != length:
+            raise TypeError(
+                "style_outputs must be a list with a length of {}".format(
+                    length
+                )
+            )
 
-    weight = tf.constant(1.0 / length, dtype=tf.float32)
-    style_cost = tf.constant(0.0, dtype=tf.float32)
+        weight = 1 / length
+        style_cost = 0.0
 
-    for i in range(length):
-        target_gram = self.gram_style_features[i]
-        output = style_outputs[i]
-        layer_cost = self.layer_style_cost(output, target_gram)
-        style_cost = tf.add(style_cost, weight * layer_cost)
+        for i in range(length):
+            style_cost += weight * self.layer_style_cost(
+                style_outputs[i], self.gram_style_features[i]
+            )
 
-    return style_cost
+        return style_cost
