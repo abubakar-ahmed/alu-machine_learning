@@ -230,11 +230,11 @@ def style_cost(self, style_outputs):
     '''
         Calculates the style cost for generated image
 
-        parameters:
+        Parameters:
             style_outputs: a list containing the outputs of
             the style layers
 
-        returns:
+        Returns:
             the style cost
     '''
     length = len(self.style_layers)
@@ -247,7 +247,9 @@ def style_cost(self, style_outputs):
     style_cost = tf.constant(0.0, dtype=tf.float32)
 
     for i in range(length):
-        cost = self.layer_style_cost(style_outputs[i], self.gram_style_features[i])
-        style_cost = tf.add(style_cost, weight * cost)
+        target_gram = self.gram_style_features[i]
+        output = style_outputs[i]
+        layer_cost = self.layer_style_cost(output, target_gram)
+        style_cost = tf.add(style_cost, weight * layer_cost)
 
     return style_cost
