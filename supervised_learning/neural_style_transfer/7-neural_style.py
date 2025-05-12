@@ -259,22 +259,35 @@ class NST:
         '''
             Calculates the content cost for generated image
         '''
-        if not isinstance(content_output, tf.Tensor) or len(
-                content_output.shape) != 4:
-            raise TypeError("content_output must be a tensor of rank 4")
+        shape = self.content_feature.shape
+        if not isinstance(content_output, (tf.Tensor, tf.Variable)) or \
+           content_output.shape != shape:
+            raise TypeError(
+                "content_output must be a tensor of shape {}".format(shape))
         content_cost = tf.reduce_mean(
             tf.square(content_output - self.content_feature)
         )
         return content_cost
 
     def total_cost(self, generated_image):
-        '''
-            Calculates the total cost for generated image
-        '''
-        if not isinstance(generated_image, tf.Tensor) or len(
-                generated_image.shape) != 4:
+        """
+        Calculates total cost of gen image
+        Params: Gen image(1, nh, nw, 3)
+        Returns: (J, Jcotent, Jstyle)
+        """
+        shape = self.content_image.shape
+        if not isinstance(generated_image, (tf.Tensor, tf.Variable)) or \
+           generated_image.shape != shape:
             raise TypeError(
-                "content_output must be a tensor of shape {}".format(
-                    generated_image.shape
-                )
+                "generated_image must be a tensor of shape {}".format(shape)
             )
+        model_outputs = self.model(generated_image)
+        style_outputs = model_outputs[:-1]
+        content_output = model_outputs[-1]
+        J_content = self.content_cost(content_output)
+        J_style = self.style_cost(style_outputs)
+        alpha = self.alpha
+        beta = self.beta
+        J = alpha * J_content + beta * J_style
+
+        return J, J_content, J_style
