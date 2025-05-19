@@ -10,42 +10,40 @@ import numpy as np
 
 def bi_rnn(bi_cell, X, h_0, h_T):
     '''
-    Performs forward propagation for a bidirectional RNN
+        Performs forward propagation for a bidirectional RNN
 
-    Parameters:
-        bi_cell: instance of BidirectionalCell
-        X: ndarray (t, m, i) - input data
-        h_0: ndarray (m, h) - initial forward hidden state
-        h_T: ndarray (m, h) - initial backward hidden state
+        Parameters:
+        - bi_cell: an instance of BidirectionalCell
+        - X: numpy.ndarray of shape (t, m, i)
+        - h_0: numpy.ndarray of shape (m, h) for forward direction
+        - h_T: numpy.ndarray of shape (m, h) for backward direction
 
-    Returns:
-        H: ndarray (t, 2, m, h) - all hidden states
-        Y: ndarray (t, m, o) - all outputs
+        Returns:
+        - H: numpy.ndarray of shape (t, m, 2 * h), concatenated hidden states
+        - Y: numpy.ndarray of shape (t, m, o), outputs
     '''
+
     t, m, i = X.shape
     _, h = h_0.shape
 
-    Hf = np.zeros((t + 1, m, h))
-    Hb = np.zeros((t + 1, m, h))
-    Hf[0] = h_0
-    Hb[t] = h_T
-
-    # Forward pass
+    # Forward direction
+    H_f = np.zeros((t + 1, m, h))
+    H_f[0] = h_0
     for step in range(t):
-        Hf[step + 1] = bi_cell.forward(Hf[step], X[step])
+        H_f[step + 1] = bi_cell.forward(H_f[step], X[step])
 
-    # Backward pass
+    # Backward direction
+    H_b = np.zeros((t + 1, m, h))
+    H_b[t] = h_T
     for step in reversed(range(t)):
-        Hb[step] = bi_cell.backward(Hb[step + 1], X[step])
+        H_b[step] = bi_cell.backward(H_b[step + 1], X[step])
 
-    H = np.zeros((t, 2, m, h))
+    # Concatenate hidden states and compute output
+    H = np.zeros((t, m, 2 * h))
     Y = []
-
     for step in range(t):
-        H[step, 0] = Hf[step + 1]
-        H[step, 1] = Hb[step]
-        y = bi_cell.output(H[step])
-        Y.append(y)
+        H[step] = np.concatenate((H_f[step + 1], H_b[step]), axis=1)
+        Y.append(bi_cell.output(H[step]))
 
-    Y = np.stack(Y, axis=0)  # (t, m, o)
+    Y = np.array(Y)
     return H, Y
