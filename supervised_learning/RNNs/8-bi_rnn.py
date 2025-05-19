@@ -4,9 +4,7 @@
     that performs forward propagation for a bidirectional RNN:
 '''
 
-
 import numpy as np
-
 
 def bi_rnn(bi_cell, X, h_0, h_T):
     '''
@@ -22,28 +20,27 @@ def bi_rnn(bi_cell, X, h_0, h_T):
         - H: numpy.ndarray of shape (t, m, 2 * h), concatenated hidden states
         - Y: numpy.ndarray of shape (t, m, o), outputs
     '''
-
     t, m, i = X.shape
-    _, h = h_0.shape
-
-    # Forward direction
-    H_f = np.zeros((t + 1, m, h))
-    H_f[0] = h_0
+    h = h_0.shape[1]
+    
+    # Forward pass
+    H_forward = np.zeros((t + 1, m, h))
+    H_forward[0] = h_0
     for step in range(t):
-        H_f[step + 1] = bi_cell.forward(H_f[step], X[step])
-
-    # Backward direction
-    H_b = np.zeros((t + 1, m, h))
-    H_b[t] = h_T
-    for step in reversed(range(t)):
-        H_b[step] = bi_cell.backward(H_b[step + 1], X[step])
-
-    # Concatenate hidden states and compute output
-    H = np.zeros((t, m, 2 * h))
-    Y = []
+        H_forward[step + 1] = bi_cell.forward(H_forward[step], X[step])
+    
+    # Backward pass
+    H_backward = np.zeros((t + 1, m, h))
+    H_backward[t] = h_T
+    for step in range(t - 1, -1, -1):
+        H_backward[step] = bi_cell.backward(H_backward[step + 1], X[step])
+    
+    # Concatenate forward and backward hidden states
+    H = np.concatenate((H_forward[1:], H_backward[:-1]), axis=-1)
+    
+    # Compute outputs
+    Y = np.zeros((t, m, bi_cell.output_size))
     for step in range(t):
-        H[step] = np.concatenate((H_f[step + 1], H_b[step]), axis=1)
-        Y.append(bi_cell.output(H[step]))
-
-    Y = np.array(Y)
+        Y[step] = bi_cell.output(H[step])
+    
     return H, Y
