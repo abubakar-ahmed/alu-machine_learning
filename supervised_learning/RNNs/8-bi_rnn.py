@@ -1,26 +1,25 @@
 #!/usr/bin/env python3
 '''
-    Script that defines a function def bi_rnn(bi_cell, X, h_0, h_t):
-    that performs forward propagation for a bidirectional RNN:
+    Script that defines a bidirectional RNN forward propagation function
 '''
 
 import numpy as np
 
 def bi_rnn(bi_cell, X, h_0, h_T):
     '''
-        Performs forward propagation for a bidirectional RNN
+    Performs forward propagation for a bidirectional RNN
 
-        Parameters:
-        - bi_cell: an instance of BidirectionalCell
-        - X: numpy.ndarray of shape (t, m, i)
-        - h_0: numpy.ndarray of shape (m, h) for forward direction
-        - h_T: numpy.ndarray of shape (m, h) for backward direction
+    Args:
+        bi_cell: BidirectionalCell instance
+        X: Input data (t, m, i)
+        h_0: Initial hidden state for forward RNN (m, h)
+        h_T: Initial hidden state for backward RNN (m, h)
 
-        Returns:
-        - H: numpy.ndarray of shape (t, m, 2 * h), concatenated hidden states
-        - Y: numpy.ndarray of shape (t, m, o), outputs
+    Returns:
+        H: Concatenated hidden states (t, m, 2*h)
+        Y: Outputs (t, m, o)
     '''
-    t, m, i = X.shape
+    t, m, _ = X.shape
     h = h_0.shape[1]
     
     # Forward pass
@@ -35,15 +34,16 @@ def bi_rnn(bi_cell, X, h_0, h_T):
     for step in range(t - 1, -1, -1):
         H_backward[step] = bi_cell.backward(H_backward[step + 1], X[step])
     
-    # Concatenate forward and backward hidden states
+    # Concatenate hidden states
     H = np.concatenate((H_forward[1:], H_backward[:-1]), axis=-1)
     
-    # Compute outputs - determine output size dynamically
-    first_output = bi_cell.output(H[0])
-    o = first_output.shape[-1]
-    Y = np.zeros((t, m, o))
-    Y[0] = first_output
-    for step in range(1, t):
-        Y[step] = bi_cell.output(H[step])
+    # Compute outputs
+    Y = []
+    for step in range(t):
+        # Reshape to add batch dimension if needed
+        h_concat = H[step][np.newaxis, :, :]  # Shape (1, m, 2*h)
+        output = bi_cell.output(h_concat)
+        Y.append(output[0])  # Remove batch dimension
     
+    Y = np.array(Y)
     return H, Y
