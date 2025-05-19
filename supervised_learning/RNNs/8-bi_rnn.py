@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-''' Script that defines a bidirectional RNN forward propagation function '''
+'''
+Script that defines a bidirectional RNN forward propagation function
+'''
+
+
 import numpy as np
 
 
@@ -38,8 +42,10 @@ def bi_rnn(bi_cell, X, h_0, h_T):
     # Compute outputs
     Y = []
     for step in range(t):
-        output = bi_cell.output(H[step])
-        Y.append(output)
+        # Reshape to add batch dimension if needed
+        h_concat = H[step][np.newaxis, :, :]  # Shape (1, m, 2*h)
+        output = bi_cell.output(h_concat)
+        Y.append(output[0])  # Remove batch dimension
 
     Y = np.array(Y)
     return H, Y
