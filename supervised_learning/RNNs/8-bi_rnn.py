@@ -38,9 +38,12 @@ def bi_rnn(bi_cell, X, h_0, h_T):
     # Concatenate forward and backward hidden states
     H = np.concatenate((H_forward[1:], H_backward[:-1]), axis=-1)
     
-    # Compute outputs
-    Y = np.zeros((t, m, bi_cell.output_size))
-    for step in range(t):
+    # Compute outputs - determine output size dynamically
+    first_output = bi_cell.output(H[0])
+    o = first_output.shape[-1]
+    Y = np.zeros((t, m, o))
+    Y[0] = first_output
+    for step in range(1, t):
         Y[step] = bi_cell.output(H[step])
     
     return H, Y
