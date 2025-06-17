@@ -23,21 +23,29 @@ def expectation_maximization(X, k, iterations=1000, tol=1e-5, verbose=False):
     if not isinstance(verbose, bool):
         return None, None, None, None, None
 
+    # Step 1: Initialization
     pi, m, S = initialize(X, k)
-    g, l = expectation(X, pi, m, S)
-    l_prev = 0
+    g, l_prev = expectation(X, pi, m, S)
 
-    for i in range(iterations):
+    if verbose:
+        print(f"Log Likelihood after 0 iterations: {l_prev:.5f}")
+
+    for i in range(1, iterations + 1):
+        # Step 2: M-step
         pi, m, S = maximization(X, g)
+
+        # Step 3: E-step
         g, l = expectation(X, pi, m, S)
 
         if verbose and i % 10 == 0:
-            print("Log Likelihood after {} iterations: {:.5f}".format(i, l))
+            print(f"Log Likelihood after {i} iterations: {l:.5f}")
 
+        # Step 4: Check for convergence
         if abs(l - l_prev) <= tol:
             if verbose:
-                print("Log Likelihood after {} iterations: {:.5f}".format(i + 1, l))
+                print(f"Log Likelihood after {i} iterations: {l:.5f}")
             break
+
         l_prev = l
 
     return pi, m, S, g, l
