@@ -11,6 +11,7 @@ maximization = __import__('7-maximization').maximization
 def expectation_maximization(X, k, iterations=1000, tol=1e-5, verbose=False):
     '''
     Performs the Expectation Maximization algorithm for a GMM
+    using a single loop
     '''
     if not isinstance(X, np.ndarray) or len(X.shape) != 2:
         return None, None, None, None, None
@@ -23,28 +24,23 @@ def expectation_maximization(X, k, iterations=1000, tol=1e-5, verbose=False):
     if not isinstance(verbose, bool):
         return None, None, None, None, None
 
-    # Step 1: Initialization
     pi, m, S = initialize(X, k)
-    g, l_prev = expectation(X, pi, m, S)
+    l_prev = 0
 
-    if verbose:
-        print(f"Log Likelihood after 0 iterations: {l_prev:.5f}")
-
-    for i in range(1, iterations + 1):
-        # Step 2: M-step
-        pi, m, S = maximization(X, g)
-
-        # Step 3: E-step
+    for i in range(iterations):
+        # E-step
         g, l = expectation(X, pi, m, S)
 
         if verbose and i % 10 == 0:
             print(f"Log Likelihood after {i} iterations: {l:.5f}")
 
-        # Step 4: Check for convergence
         if abs(l - l_prev) <= tol:
             if verbose:
                 print(f"Log Likelihood after {i} iterations: {l:.5f}")
             break
+
+        # M-step
+        pi, m, S = maximization(X, g)
 
         l_prev = l
 
