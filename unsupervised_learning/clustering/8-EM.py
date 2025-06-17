@@ -11,28 +11,30 @@ expectation = __import__('6-expectation').expectation
 maximization = __import__('7-maximization').maximization
 
 
-def expectation_maximization(X, k, iterations=1000, tol=1e-5, verbose=False):
+def expectation_maximization(X, k,
+                             iterations=1000, tol=1e-5, verbose=False):
     """
-    Performs the expectation maximization for a GMM
+    Performs expectation maximization for a GMM
 
-    X: numpy.ndarray of shape (n, d) containing the dataset
-    k: positive integer containing the number of clusters
-    iterations: max number of iterations
-    tol: non-negative float for tolerance of the log likelihood
-    verbose: boolean that determines if output should be printed
+    Parameters:
+    - X: numpy.ndarray of shape (n, d) containing the dataset
+    - k: positive integer for number of clusters
+    - iterations: max number of iterations for EM algorithm
+    - tol: tolerance for log likelihood convergence
+    - verbose: if True, prints log likelihood every 10 iterations
 
     Returns:
-        pi: numpy.ndarray of shape (k,) - priors for each cluster
-        m: numpy.ndarray of shape (k, d) - centroid means for each cluster
-        S: numpy.ndarray of shape (k, d, d) - covariance matrices for each cluster
-        g: numpy.ndarray of shape (k, n) - posterior probabilities for each data point
-        log_likelihood: log likelihood of the model
+    - pi: numpy.ndarray of shape (k,) with priors for each cluster
+    - m: numpy.ndarray of shape (k, d) with centroid means
+    - S: numpy.ndarray of shape (k, d, d) with covariance matrices
+    - g: numpy.ndarray of shape (k, n) with posterior probabilities
+    - log_likelihood: the final log likelihood of the model
     """
     if (not isinstance(X, np.ndarray) or len(X.shape) != 2 or
-        not isinstance(k, int) or k <= 0 or
-        not isinstance(iterations, int) or iterations <= 0 or
-        not isinstance(tol, float) or tol < 0 or
-        not isinstance(verbose, bool)):
+            not isinstance(k, int) or k <= 0 or
+            not isinstance(iterations, int) or iterations <= 0 or
+            not isinstance(tol, float) or tol < 0 or
+            not isinstance(verbose, bool)):
         return None, None, None, None, None
 
     pi, m, S = initialize(X, k)
@@ -41,14 +43,14 @@ def expectation_maximization(X, k, iterations=1000, tol=1e-5, verbose=False):
     msg = "Log Likelihood after {} iterations: {}"
 
     if verbose:
-        print(msg.format(0, log_likelihood.round(5)))
+        print(msg.format(0, round(log_likelihood, 5)))
 
     for i in range(iterations):
         pi, m, S = maximization(X, g)
         g, log_likelihood = expectation(X, pi, m, S)
 
         if verbose and (i + 1) % 10 == 0:
-            print(msg.format(i + 1, log_likelihood.round(5)))
+            print(msg.format(i + 1, round(log_likelihood, 5)))
 
         if abs(prev_like - log_likelihood) <= tol:
             break
@@ -56,6 +58,6 @@ def expectation_maximization(X, k, iterations=1000, tol=1e-5, verbose=False):
         prev_like = log_likelihood
 
     if verbose and (i + 1) % 10 != 0:
-        print(msg.format(i + 1, log_likelihood.round(5)))
+        print(msg.format(i + 1, round(log_likelihood, 5)))
 
     return pi, m, S, g, log_likelihood
