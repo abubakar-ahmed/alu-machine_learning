@@ -8,6 +8,7 @@ initialize = __import__('4-initialize').initialize
 expectation = __import__('6-expectation').expectation
 maximization = __import__('7-maximization').maximization
 
+
 def expectation_maximization(X, k, iterations=1000, tol=1e-5, verbose=False):
     '''
     Performs the Expectation Maximization algorithm for a GMM using a single loop
@@ -24,22 +25,24 @@ def expectation_maximization(X, k, iterations=1000, tol=1e-5, verbose=False):
         return None, None, None, None, None
 
     pi, m, S = initialize(X, k)
-    l_prev = 0
+    prev_log_likelihood = 0
 
     for i in range(iterations):
         # E-step
-        g, l = expectation(X, pi, m, S)
+        g, log_likelihood = expectation(X, pi, m, S)
 
         if verbose and i % 10 == 0:
-            print("Log Likelihood after {} iterations: {:.5f}".format(i, l))
+            print("Log Likelihood after {} iterations: {:.5f}".format(i,
+                  log_likelihood))
 
-        if abs(l - l_prev) <= tol:
+        if abs(log_likelihood - prev_log_likelihood) <= tol:
             if verbose and (i % 10 != 0):
-                print("Log Likelihood after {} iterations: {:.5f}".format(i, l))
+                print("Log Likelihood after {} iterations: {:.5f}".format(
+                      i, log_likelihood))
             break
 
         # M-step
         pi, m, S = maximization(X, g)
-        l_prev = l
+        prev_log_likelihood = log_likelihood
 
-    return pi, m, S, g, l
+    return pi, m, S, g, log_likelihood
