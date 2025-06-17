@@ -1,33 +1,36 @@
 #!/usr/bin/env python3
-'''
-    function def absorbing(P): that
-    determines if a markov chain is absorbing
-'''
-
+"""
+Function that determines if a Markov chain is absorbing
+"""
 
 import numpy as np
 
 
 def absorbing(P):
-    '''
-        Determines if a markov chain is absorbing
-    '''
-    if len(P.shape) != 2:
+    """
+    Determines if a Markov chain is absorbing
+    """
+    if type(P) is not np.ndarray or len(P.shape) != 2:
         return None
-    n1, n2 = P.shape
-    if (n1 != n2) or type(P) is not np.ndarray:
+    if P.shape[0] != P.shape[1]:
         return None
-    D = np.diagonal(P)
-    if (D == 1).all():
-        return True
-    if not (D == 1).any():
+
+    n = P.shape[0]
+    absorbing_states = np.isclose(np.diag(P), 1)
+
+    if not np.any(absorbing_states):
         return False
 
-    for i in range(n1):
-            # print('this is Pi {}'.format(P[i]))
-            for j in range(n2):
-                # print('this is Pj {}'.format(P[j]))
-                if (i == j) and (i + 1 < len(P)):
-                    if P[i + 1][j] == 0 and P[i][j + 1] == 0:
-                        return False
+    # Create reachability matrix using powers of P
+    reachable = P.copy()
+    power = P.copy()
+    for _ in range(n):
+        power = np.matmul(power, P)
+        reachable += power
+
+    # Check if each state can reach at least one absorbing state
+    for i in range(n):
+        if not np.any(reachable[i][absorbing_states] > 0):
+            return False
+
     return True
