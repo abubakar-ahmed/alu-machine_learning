@@ -9,7 +9,8 @@ expectation_maximization = __import__('8-EM').expectation_maximization
 
 def BIC(X, kmin=1, kmax=None, iterations=1000, tol=1e-5, verbose=False):
     """
-    Finds the best number of clusters for a GMM using BIC
+    Finds the best number of clusters for a GMM using 
+    the Bayesian Information Criterion (BIC)
     """
     if not isinstance(X, np.ndarray) or len(X.shape) != 2:
         return None, None, None, None
@@ -26,7 +27,7 @@ def BIC(X, kmin=1, kmax=None, iterations=1000, tol=1e-5, verbose=False):
 
     n, d = X.shape
     if kmax is None:
-        kmax = n  # or choose a sensible default upper bound
+        kmax = n
 
     best_k = None
     best_result = None
@@ -35,24 +36,17 @@ def BIC(X, kmin=1, kmax=None, iterations=1000, tol=1e-5, verbose=False):
 
     for k in range(kmin, kmax + 1):
         try:
-            pi, m, S, g, log_likelihood = expectation_maximization(
-                X, k, iterations, tol, verbose
-            )
-
-            # Check validity of outputs
-            if (
-                log_likelihood is None or
-                not np.isfinite(log_likelihood) or
-                not all(np.isfinite(arr).all() for arr in [pi, m, S])
-            ):
+            pi, m, S, g, ll = expectation_maximization(X, k, iterations, tol, verbose)
+            if ll is None or not np.isfinite(ll):
+                continue
+            if not all(np.isfinite(arr).all() for arr in [pi, m, S]):
                 continue
 
-            # Number of model parameters
-            cov_params = (d * (d + 1)) / 2
+            cov_params = d * (d + 1) / 2
             p = (k - 1) + k * d + k * cov_params
-            bic = (p * np.log(n)) - (2 * log_likelihood)
+            bic = p * np.log(n) - 2 * ll
 
-            log_likelihoods.append(log_likelihood)
+            log_likelihoods.append(ll)
             bics.append(bic)
 
             if best_k is None or bic < bics[best_k - kmin]:
@@ -65,9 +59,4 @@ def BIC(X, kmin=1, kmax=None, iterations=1000, tol=1e-5, verbose=False):
     if best_k is None:
         return None, None, None, None
 
-    return (
-        best_k,
-        best_result,
-        np.array(log_likelihoods),
-        np.array(bics)
-    )
+    return best_k, best_result, np.array(log_likelihoods), np.array(bics)
