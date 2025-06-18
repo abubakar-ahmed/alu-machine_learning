@@ -17,7 +17,7 @@ def BIC(X, kmin=1, kmax=None, iterations=1000, tol=1e-5, verbose=False):
     - bics: np.ndarray of BIC values for each k
     """
 
-    # Input validation
+    # Validate inputs
     if not isinstance(X, np.ndarray) or X.ndim != 2:
         return None, None, None, None
 
@@ -40,27 +40,32 @@ def BIC(X, kmin=1, kmax=None, iterations=1000, tol=1e-5, verbose=False):
         return None, None, None, None
 
     n, d = X.shape
+    num_ks = kmax - kmin + 1
+
+    # Pre-allocate arrays to store likelihoods and BICs
+    log_likelihoods = np.empty(num_ks)
+    bics = np.empty(num_ks)
 
     best_k = None
     best_result = None
-    log_likelihoods = []
-    bics = []
+    best_bic = np.inf
 
-    for k in range(kmin, kmax + 1):
+    for i, k in enumerate(range(kmin, kmax + 1)):
         pi, m, S, g, ll = expectation_maximization(X, k, iterations, tol, verbose)
+
         if ll is None:
             return None, None, None, None
 
-        # Number of parameters for full covariance GMM
-        p = k - 1 + k * d + k * d * (d + 1) / 2
+        p = k - 1 + k * d + k * d * (d + 1) / 2  # Number of params
+
         bic = p * np.log(n) - 2 * ll
 
-        log_likelihoods.append(ll)
-        bics.append(bic)
+        log_likelihoods[i] = ll
+        bics[i] = bic
 
-        # Update best model if current BIC is lower (better)
-        if best_k is None or bic < min(bics):
+        if bic < best_bic:
+            best_bic = bic
             best_k = k
             best_result = (pi, m, S)
 
-    return best_k, best_result, np.array(log_likelihoods), np.array(bics)
+    return best_k, best_result, log_likelihoods, bics
