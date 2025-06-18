@@ -1,23 +1,12 @@
 #!/usr/bin/env python3
-"""This module contains a function that finds the best number
-of clusters for a GMM using the Bayesian Information Criterion"""
+"""This module finds the best number of clusters using BIC for GMM"""
 
 import numpy as np
 expectation_maximization = __import__('8-EM').expectation_maximization
 
 
 def BIC(X, kmin=1, kmax=None, iterations=1000, tol=1e-5, verbose=False):
-    """
-    Finds the best number of clusters for a GMM using the BIC.
-
-    Returns:
-    - best_k: best number of clusters (int)
-    - best_result: tuple (pi, m, S) for best k
-    - log_likelihoods: np.ndarray of log likelihoods for each k
-    - bics: np.ndarray of BIC values for each k
-    """
-
-    # Validate inputs
+    """Finds the best number of clusters using the BIC"""
     if not isinstance(X, np.ndarray) or X.ndim != 2:
         return None, None, None, None
 
@@ -40,28 +29,26 @@ def BIC(X, kmin=1, kmax=None, iterations=1000, tol=1e-5, verbose=False):
         return None, None, None, None
 
     n, d = X.shape
-    num_ks = kmax - kmin + 1
+    k_range = range(kmin, kmax + 1)
+    num_k = len(k_range)
+    log_likelihoods = np.empty(num_k)
+    bics = np.empty(num_k)
 
-    # Pre-allocate arrays to store likelihoods and BICs
-    log_likelihoods = np.empty(num_ks)
-    bics = np.empty(num_ks)
-
+    best_bic = np.inf
     best_k = None
     best_result = None
-    best_bic = np.inf
 
-    for i, k in enumerate(range(kmin, kmax + 1)):
+    for idx, k in enumerate(k_range):
         pi, m, S, g, ll = expectation_maximization(X, k, iterations, tol, verbose)
-
         if ll is None:
             return None, None, None, None
 
-        p = k - 1 + k * d + k * d * (d + 1) / 2  # Number of params
-
+        # Parameters: k-1 priors, k means (d), k covariances (d * (d+1)/2)
+        p = k * d + k * d * (d + 1) / 2 + k - 1
         bic = p * np.log(n) - 2 * ll
 
-        log_likelihoods[i] = ll
-        bics[i] = bic
+        log_likelihoods[idx] = ll
+        bics[idx] = bic
 
         if bic < best_bic:
             best_bic = bic
