@@ -43,7 +43,7 @@ def autoencoder(input_dims, hidden_layers, latent_dims):
 
     # Encoder model
     encoder = keras.Model(encoder_inputs, [z_mean, z_log_var, z],
-                         name='encoder')
+                          name='encoder')
 
     # Decoder
     decoder_inputs = keras.Input(shape=(latent_dims,))
@@ -54,7 +54,7 @@ def autoencoder(input_dims, hidden_layers, latent_dims):
         x = keras.layers.Dense(units, activation='relu')(x)
 
     decoder_outputs = keras.layers.Dense(input_dims,
-                                        activation='sigmoid')(x)
+                                         activation='sigmoid')(x)
     decoder = keras.Model(decoder_inputs, decoder_outputs, name='decoder')
 
     # VAE model
@@ -63,7 +63,7 @@ def autoencoder(input_dims, hidden_layers, latent_dims):
 
     # Loss function
     reconstruction_loss = keras.losses.binary_crossentropy(encoder_inputs,
-                                                          outputs)
+                                                           outputs)
     reconstruction_loss *= input_dims
     kl_loss = 1 + z_log_var - keras.backend.square(z_mean) - \
         keras.backend.exp(z_log_var)
